@@ -11,15 +11,15 @@ from scipy.interpolate import interp1d
 # from . greenfunction import GreenFunction
 # from . fourier import FourierTransform
 
-from common import Common, co
-from bird import Bird
-from nonlinear import NonLinear
-from nnlo import NNLO_higher_derivative, NNLO_counterterm
-from resum import Resum
-from projection import Projection
-from greenfunction import GreenFunction
-from fourier import FourierTransform
-from eisensteinhu import EisensteinHu
+from .common import Common, co
+from .bird import Bird
+from .nonlinear import NonLinear
+from .nnlo import NNLO_higher_derivative, NNLO_counterterm
+from .resum import Resum
+from .projection import Projection
+from .greenfunction import GreenFunction
+from .fourier import FourierTransform
+from .eisensteinhu import EisensteinHu
 
 # import importlib, sys
 # importlib.reload(sys.modules['common'])
@@ -43,7 +43,7 @@ from eisensteinhu import EisensteinHu
 # from eisensteinhu import EisensteinHu
 
 class Correlator(object):
-    
+
     def __init__(self, config_dict=None, load_engines=True):
 
         self.cosmo_catalog = {
@@ -54,10 +54,10 @@ class Correlator(object):
                 description="k-array in [h/Mpc] on which P11 is evaluated",
                 default=None) ,
             "D": Option("D", (float, list, np.ndarray),
-                description="Scale independent growth function. To specify if \'skycut\' > 1 or \'with_nonequal_time\' / \'with_redshift_bin\' is True.", 
+                description="Scale independent growth function. To specify if \'skycut\' > 1 or \'with_nonequal_time\' / \'with_redshift_bin\' is True.",
                 default=None) ,
             "f": Option("f", (float, list, np.ndarray),
-                description="Scale independent growth rate (for RSD). Automatically set to 0 for \'output\': \'m__\'.", 
+                description="Scale independent growth rate (for RSD). Automatically set to 0 for \'output\': \'m__\'.",
                 default=None) ,
             "bias": Option("bias", (dict, list, np.ndarray),
                 description="EFT parameters in dictionary to specify as \
@@ -67,60 +67,60 @@ class Correlator(object):
                     if (a): \'b\' in \'output\'; (b): \'multipole\'>=2; (d): \'with_stoch\' is True ",
                 default=None) ,
             "Omega0_m": Option("Omega0_m", float,
-                description="Fractional matter abundance at present time. To specify for exact time dependence.", 
+                description="Fractional matter abundance at present time. To specify for exact time dependence.",
                 default=None) ,
             "w0_fld": Option("w0_fld", float,
-                description="Dark energy equation of state parameter. To specify for exact time dependence if varied (otherwise w0 = -1).", 
+                description="Dark energy equation of state parameter. To specify for exact time dependence if varied (otherwise w0 = -1).",
                 default=None) ,
             "z": Option("z", (float, list, np.ndarray),
                 description="Effective redshift(s). Should match the number of skycuts. To specify for exact time dependence.",
                 default=None) ,
             "DA": Option("DA", (float, list, np.ndarray),
-                description="Angular distance times H_0. To specify if \'with_AP\' is True.", 
+                description="Angular distance times H_0. To specify if \'with_AP\' is True.",
                 default=None) ,
             "H": Option("H", (float, list, np.ndarray),
-                description="Hubble parameter by H_0. To specify if \'with_AP\' is True.", 
+                description="Hubble parameter by H_0. To specify if \'with_AP\' is True.",
                 default=None) ,
             "Dz": Option("Dz", (list, np.ndarray),
-                description="Scale independent growth function over redshift bin. To specify if \'with_redshift_bin\' is True.", 
+                description="Scale independent growth function over redshift bin. To specify if \'with_redshift_bin\' is True.",
                 default=None) ,
             "fz": Option("fz", (list, np.ndarray),
-                description="Scale independent growth rate over redshift bin. To specify if \'with_redshift_bin\' is True.", 
+                description="Scale independent growth rate over redshift bin. To specify if \'with_redshift_bin\' is True.",
                 default=None) ,
             "rz": Option("rz", (list, np.ndarray),
-                description="Comoving distance in [Mpc/h] over redshift bin. To specify if \'with_redshift_bin\' or if \'output\':\'w\'.", 
+                description="Comoving distance in [Mpc/h] over redshift bin. To specify if \'with_redshift_bin\' or if \'output\':\'w\'.",
                 default=None) ,
             "D1": Option("D1", float,
-                description="Scale independent growth function at redshift z1. To specify if \'with_nonequal_time\' is True.", 
+                description="Scale independent growth function at redshift z1. To specify if \'with_nonequal_time\' is True.",
                 default=None) ,
             "D2": Option("D2", float,
-                description="Scale independent growth function at redshift z2. To specify if \'with_nonequal_time\' is True.", 
+                description="Scale independent growth function at redshift z2. To specify if \'with_nonequal_time\' is True.",
                 default=None) ,
             "f1": Option("f1", float,
-                description="Scale independent growth rate at redshift z1. To specify if \'with_nonequal_time\' is True.", 
+                description="Scale independent growth rate at redshift z1. To specify if \'with_nonequal_time\' is True.",
                 default=None) ,
             "f2": Option("f2", float,
-                description="Scale independent growth rate at redshift z2. To specify if \'with_nonequal_time\' is True.", 
+                description="Scale independent growth rate at redshift z2. To specify if \'with_nonequal_time\' is True.",
                 default=None) ,
             "Psmooth": Option("Psmooth", (list, np.ndarray),
-                description="Smooth power spectrum. To specify if \'with_nnlo_counterterm\' is True.", 
+                description="Smooth power spectrum. To specify if \'with_nnlo_counterterm\' is True.",
                 default=None) ,
         }
 
         self.config_catalog = {
-            "output": Option("output", str, ["bPk", "bCf", "mPk", "mCf", "bmPk", "bmCf"], 
-                description="Correlator: biased tracers / matter / biased tracers-matter -- power spectrum / correlation function.", 
+            "output": Option("output", str, ["bPk", "bCf", "mPk", "mCf", "bmPk", "bmCf"],
+                description="Correlator: biased tracers / matter / biased tracers-matter -- power spectrum / correlation function.",
                 default="bPk") ,
-            "multipole": Option("multipole", int, [0, 2, 3], 
+            "multipole": Option("multipole", int, [0, 2, 3],
                 description="Number of multipoles. 0: real space. 2: monopole + quadrupole. 3: monopole + quadrupole + hexadecapole.",
                 default=2) ,
-            "wedge": Option("wedge", int, 
+            "wedge": Option("wedge", int,
                 description="Number of wedges. 0: compute multipole instead. ",
                 default=0) ,
-            "wedges_bounds": Option("wedges_bounds", (list, np.ndarray), 
+            "wedges_bounds": Option("wedges_bounds", (list, np.ndarray),
                 description="Wedges bounds: [0, a_1, ..., a_{n-1}, 1], n: number of wedges, such that 0 < mu < a_1, ..., a_{n-1} < mu < 1. Default: equi-spaced between 0 and 1.",
                 default=None) ,
-            "skycut": Option("skycut", int, 
+            "skycut": Option("skycut", int,
                 description="Number of skycuts.",
                 default=1) ,
             "z": Option("z", (float, list, np.ndarray),
@@ -138,10 +138,10 @@ class Correlator(object):
             "eft_basis": Option("eft_basis", str,
                 description="Basis of EFT parameters: \'eftoflss\' (default), \'westcoast\', or \'eastcoast\'. See cosmology command \'bias\' for more details.",
                 default="eftoflss") ,
-            "with_stoch": Option("with_stoch", bool, 
+            "with_stoch": Option("with_stoch", bool,
                 description="With stochastic terms.",
                    default=False) ,
-            "with_bias": Option("with_bias", bool, 
+            "with_bias": Option("with_bias", bool,
                 description="Bias (in)dependent evalution. Automatically set to False for \'with_time\': False.",
                    default=False) ,
             "with_time": Option("with_time", bool,
@@ -226,9 +226,9 @@ class Correlator(object):
                 description="keep the loop pieces 13 and 22 independent (mainly for debugging)",
                 default=False) ,
         }
-        
+
         if config_dict is not None: self.set(config_dict, load_engines=load_engines)
-    
+
 
     def info(self, description=True):
 
@@ -250,36 +250,36 @@ class Correlator(object):
                 if description:
                     print ('    - %s' % config.description)
                     print ('    * default: %s' % config.default)
-    
+
 
     def set(self, config_dict, load_engines=True):
-        
+
         # Reading config provided by user
         self.__read_config(config_dict)
-        
+
         # Setting no-optional config
         self.config["smin"] = 1.
         self.config["smax"] = 1000.
         self.config["kmin"] = 0.001
-        
+
         # Checking for config conflict
         self.__is_config_conflict()
 
         # Setting list of EFT parameters required by the user to provide later
         self.__set_eft_parameters_list()
-        
+
         # Loading PyBird engines
         self.__load_engines(load_engines=load_engines)
 
 
-    def compute(self, cosmo_dict, module=None): 
+    def compute(self, cosmo_dict, module=None):
 
         cosmo_dict_local = cosmo_dict.copy()
-        
-        if module is 'class': 
+
+        if module is 'class':
             cosmo_dict_class = self.setcosmo(cosmo_dict, module='class')
             cosmo_dict_local.update(cosmo_dict_class)
-        
+
         self.__read_cosmo(cosmo_dict_local)
         self.__is_cosmo_conflict()
 
@@ -310,7 +310,7 @@ class Correlator(object):
                 cosmoi["f"] = self.cosmo["f"][0]
                 cosmoi["D"] = self.cosmo["D"][0]
                 cosmoi["z"] = self.config["z"][0]
-                if self.config["with_AP"]: 
+                if self.config["with_AP"]:
                     cosmoi["DA"] = self.cosmo["DA"][0]
                     cosmoi["H"] = self.cosmo["H"][0]
                 self.bird = Bird(cosmoi, with_bias=False, eft_basis=self.config["eft_basis"], with_stoch=self.config["with_stoch"], with_nnlo_counterterm=self.config["with_nnlo_counterterm"], co=self.co)
@@ -331,7 +331,7 @@ class Correlator(object):
 
                 def mycycle(skycut, first=0, L=None):
                     if L is None: L = [i for i in range(skycut)]
-                    if (skycut % 2) == 0: 
+                    if (skycut % 2) == 0:
                         first = skycut//2
                     else:
                         if first == 0: first = (skycut+1)//2
@@ -357,19 +357,19 @@ class Correlator(object):
                             if self.config["with_cf"]: self.resum.PsCf(birdi, makeIR=False, makeQ=True, setPs=False, setCf=True)
                             else: self.resum.Ps(birdi, makeIR=False, makeQ=True, setPs=True)
                         self.birds.append(birdi)
-                        
+
                 if self.config["with_resum"]:
                     if self.config["with_cf"]: self.resum.PsCf(self.birds[0], makeIR=False, makeQ=False, setPs=False, setCf=True)
                     else: self.resum.Ps(self.birds[0], makeIR=False, makeQ=False, setPs=True)
 
-                self.birds = mycycle(self.config["skycut"], first=0, L=self.birds) # cycle back the birds 
+                self.birds = mycycle(self.config["skycut"], first=0, L=self.birds) # cycle back the birds
 
             for i in range(self.config["skycut"]):
                 if self.config["with_redshift_bin"] and self.config["nz"][i] is not None: self.projection[i].redshift(self.birds[i], self.cosmo["rz"][i], self.cosmo["Dz"][i], self.cosmo["fz"][i], pk=self.config["output"])
-                if self.config["with_AP"]: self.projection[i].AP(self.birds[i]) 
+                if self.config["with_AP"]: self.projection[i].AP(self.birds[i])
                 if self.config["with_window"]: self.projection[i].Window(self.birds[i])
                 if self.config["with_fibercol"]: self.projection[i].fibcolWindow(self.birds[i])
-                if self.config["wedge"] != 0: self.projection[i].Wedges(self.birds[i]) 
+                if self.config["wedge"] != 0: self.projection[i].Wedges(self.birds[i])
                 if self.config["with_binning"]: self.projection[i].xbinning(self.birds[i])
                 else: self.projection[i].xdata(self.birds[i])
 
@@ -379,15 +379,15 @@ class Correlator(object):
             raise Exception("If you want to get something else than the full correlator, please set keep_loop_pieces_independent: True")
 
         if self.config["skycut"] == 1:
-            if not self.config["with_bias"]: 
+            if not self.config["with_bias"]:
                 self.__is_bias_conflict(bias)
                 if "Pk" in self.config["output"]: self.bird.setreducePslb(self.bias, what=what)
                 elif "Cf" in self.config["output"]: self.bird.setreduceCflb(self.bias, what=what)
             if "Pk" in self.config["output"]: return self.bird.fullPs
-            elif "Cf" in self.config["output"]: return self.bird.fullCf  
+            elif "Cf" in self.config["output"]: return self.bird.fullCf
 
         elif self.config["skycut"] > 1:
-            if not isinstance(bias, (list, np.ndarray)) or len(bias) != self.config["skycut"]: 
+            if not isinstance(bias, (list, np.ndarray)) or len(bias) != self.config["skycut"]:
                 raise Exception("Please specify bias (in a list of dicts) for each corresponding skycuts. ")
             for i in range(self.config["skycut"]):
                 self.__is_bias_conflict(bias[i])
@@ -399,7 +399,7 @@ class Correlator(object):
     def getmarg(self, bias, marg_gauss_eft_parameters_list):
 
         for p in marg_gauss_eft_parameters_list:
-            if p not in self.gauss_eft_parameters_list: 
+            if p not in self.gauss_eft_parameters_list:
                 raise Exception("The parameter %s specified in getmarg() is not an available Gaussian EFT parameter to marginalize. Check your options. " % p)
 
         def marg(loopl, ctl, b1, f, stl=None, nnlol=None, bq=0):
@@ -408,26 +408,26 @@ class Correlator(object):
             loop = np.swapaxes(loopl, axis1=0, axis2=1).reshape(loopl.shape[1],-1)
             ct = np.swapaxes(ctl, axis1=0, axis2=1).reshape(ctl.shape[1],-1)
             if stl is not None: st = np.swapaxes(stl, axis1=0, axis2=1).reshape(stl.shape[1],-1)
-            if nnlol is not None: nnlo = np.swapaxes(nnlol, axis1=0, axis2=1).reshape(nnlol.shape[1],-1) 
+            if nnlol is not None: nnlo = np.swapaxes(nnlol, axis1=0, axis2=1).reshape(nnlol.shape[1],-1)
 
             pg = np.empty(shape=(len(marg_gauss_eft_parameters_list), loop.shape[1]))
             for i, p in enumerate(marg_gauss_eft_parameters_list):
-                if p in ['b3', 'bGamma3']: 
+                if p in ['b3', 'bGamma3']:
                     if self.co.Nloop == 12: pg[i] = loop[3] + b1 * loop[7]                          # config["with_time"] = True
                     elif self.co.Nloop == 18: pg[i] = loop[3] + b1 * loop[7] + bq * loop[16]        # config["with_time"] = True, config["with_tidal_alignments"] = True
                     elif self.co.Nloop == 22: pg[i] = f * loop[8] + b1 * loop[16]                   # config["with_time"] = False, config["with_exact_time"] = False
                     elif self.co.Nloop == 35: pg[i] = f * loop[18] + b1 * loop[29]                  # config["with_time"] = False, config["with_exact_time"] = True
                     if p == 'bGamma3': pg[i] *= 6. # b3 = bt1 + 15. * bG2 + 6. * bGamma3 : config["eft_basis"] = 'eastcoast'
                 # counterterm : config["eft_basis"] = 'eftoflss' or 'westcoast'
-                elif p == 'cct': pg[i] = 2 * (f * ct[0+3] + b1 * ct[0]) / self.config["km"]**2 # ~ 2 (b1 + f * mu^2) k^2/km^2 P11 
-                elif p == 'cr1': pg[i] = 2 * (f * ct[1+3] + b1 * ct[1]) / self.config["kr"]**2 # ~ 2 (b1 mu^2 + f * mu^4) k^2/kr^2 P11 
-                elif p == 'cr2': pg[i] = 2 * (f * ct[2+3] + b1 * ct[2]) / self.config["kr"]**2 # ~ 2 (b1 mu^4 + f * mu^6) k^2/kr^2 P11 
+                elif p == 'cct': pg[i] = 2 * (f * ct[0+3] + b1 * ct[0]) / self.config["km"]**2 # ~ 2 (b1 + f * mu^2) k^2/km^2 P11
+                elif p == 'cr1': pg[i] = 2 * (f * ct[1+3] + b1 * ct[1]) / self.config["kr"]**2 # ~ 2 (b1 mu^2 + f * mu^4) k^2/kr^2 P11
+                elif p == 'cr2': pg[i] = 2 * (f * ct[2+3] + b1 * ct[2]) / self.config["kr"]**2 # ~ 2 (b1 mu^4 + f * mu^6) k^2/kr^2 P11
                 # counterterm : config["eft_basis"] = 'eastcoast'                       # (2.15) and (2.23) of 2004.10607
                 elif p in ['c0', 'c2', 'c4']:
-                    ct0, ct2, ct4 = - 2 * ct[0], - 2 * f * ct[1], - 2 * f**2 * ct[2]    # - 2 ct0 k^2 P11 , - 2 ct2 f mu^2 k^2 P11 , - 2 ct4 f^2 mu^4 k^2 P11 
-                    if p == 'c0':   pg[i] = ct0                                           
-                    elif p == 'c2': pg[i] = - f/3. * ct0 + ct2                        
-                    elif p == 'c4': pg[i] = 3/35. * f**2 * ct0 - 6/7. * f * ct2 + ct4                                      
+                    ct0, ct2, ct4 = - 2 * ct[0], - 2 * f * ct[1], - 2 * f**2 * ct[2]    # - 2 ct0 k^2 P11 , - 2 ct2 f mu^2 k^2 P11 , - 2 ct4 f^2 mu^4 k^2 P11
+                    if p == 'c0':   pg[i] = ct0
+                    elif p == 'c2': pg[i] = - f/3. * ct0 + ct2
+                    elif p == 'c4': pg[i] = 3/35. * f**2 * ct0 - 6/7. * f * ct2 + ct4
                 # stochastic term
                 elif p == 'ce0': pg[i] = st[0] # k^0 / nd mono
                 elif p == 'ce1': pg[i] = st[1] # k^2 / km^2 / nd mono
@@ -453,19 +453,19 @@ class Correlator(object):
     def __load_engines(self, load_engines=True):
 
         self.co = Common(Nl=self.config["multipole"], kmax=self.config["kmax"], km=self.config["km"], kr=self.config["kr"], nd=self.config["nd"], eft_basis=self.config["eft_basis"],
-            halohalo=self.config["halohalo"], with_cf=self.config["with_cf"], with_time=self.config["with_time"], optiresum=self.config["optiresum"], 
-            exact_time=self.config["with_exact_time"], quintessence=self.config["with_quintessence"], 
+            halohalo=self.config["halohalo"], with_cf=self.config["with_cf"], with_time=self.config["with_time"], optiresum=self.config["optiresum"],
+            exact_time=self.config["with_exact_time"], quintessence=self.config["with_quintessence"],
             with_tidal_alignments=self.config["with_tidal_alignments"], nonequaltime=self.config["with_common_nonequal_time"], keep_loop_pieces_independent=self.config["keep_loop_pieces_independent"])
-        
+
         if load_engines:
             self.nonlinear = NonLinear(load=True, save=True, fftbias=self.config["fftbias"], co=self.co)
             self.resum = Resum(co=self.co)
 
             if self.config["with_nnlo_counterterm"]: self.nnlo_counterterm = NNLO_counterterm(co=self.co)
 
-            if self.config["skycut"] == 1: 
-                self.projection = Projection(self.config["xdata"], Om_AP=self.config["Omega_m_AP"], z_AP=self.config["z_AP"], 
-                    window_fourier_name=self.config["windowPk"], path_to_window='', window_configspace_file=self.config["windowCf"], 
+            if self.config["skycut"] == 1:
+                self.projection = Projection(self.config["xdata"], Om_AP=self.config["Omega_m_AP"], z_AP=self.config["z_AP"],
+                    window_fourier_name=self.config["windowPk"], path_to_window='', window_configspace_file=self.config["windowCf"],
                     binning=self.config["with_binning"], fibcol=self.config["with_fibercol"], Nwedges=self.config["wedge"], wedges_bounds=self.config["wedges_bounds"],
                     zz=self.config["zz"], nz=self.config["nz"], co=self.co)
             elif self.config["skycut"] > 1:
@@ -484,10 +484,10 @@ class Correlator(object):
                     else: Om_AP = None ; z_AP = None
                     if self.config["with_redshift_bin"]: zz = self.config["zz"][i] ; nz = self.config["nz"][i]
                     else: zz = None ; nz = None
-                    self.projection.append( Projection(xdata, Om_AP=Om_AP, z_AP=z_AP, 
-                        window_fourier_name=windowPk, path_to_window='', window_configspace_file=windowCf, 
+                    self.projection.append( Projection(xdata, Om_AP=Om_AP, z_AP=z_AP,
+                        window_fourier_name=windowPk, path_to_window='', window_configspace_file=windowCf,
                         binning=self.config["with_binning"], fibcol=self.config["with_fibercol"], Nwedges=self.config["wedge"], wedges_bounds=self.config["wedges_bounds"],
-                        zz=zz, nz=nz, co=self.co) ) 
+                        zz=zz, nz=nz, co=self.co) )
 
     def __read_cosmo(self, cosmo_dict):
 
@@ -497,7 +497,7 @@ class Correlator(object):
                     if cosmo_key is name:
                         cosmo.check(cosmo_key, cosmo_dict[cosmo_key])
 
-        # Setting unspecified configs to default value 
+        # Setting unspecified configs to default value
         for (name, cosmo) in zip(self.cosmo_catalog, self.cosmo_catalog.values()):
             if cosmo.value is None: cosmo.value = cosmo.default
 
@@ -508,7 +508,7 @@ class Correlator(object):
 
         if self.cosmo["k11"] is None or self.cosmo["P11"] is None:
             raise Exception("Please provide a linear matter power spectrum \'P11\' and the corresponding \'k11\'. ")
-        
+
         if len(self.cosmo["k11"]) != len(self.cosmo["P11"]):
             raise Exception("Please provide a linear matter power spectrum \'P11\' and the corresponding \'k11\' of same length.")
 
@@ -523,25 +523,25 @@ class Correlator(object):
 
         if self.config["multipole"] == 0: self.cosmo["f"] = 0.
         elif not self.config["with_redshift_bin"]:
-            if self.cosmo["f"] is None: 
+            if self.cosmo["f"] is None:
                 raise Exception("Please specify the growth rate \'f\'.")
             if self.config["skycut"] == 1:
                 if not isinstance(self.cosmo["f"], float):
                     raise Exception("Please provide a single growth rate \'f\'.")
-            elif len(self.cosmo["f"]) != self.config["skycut"]: 
+            elif len(self.cosmo["f"]) != self.config["skycut"]:
                 raise Exception("Please specify (in a list) as many \'f\' as the corresponding skycuts.")
 
         if self.config["wedge"] > 0:
             if self.config["wedges_bounds"] is not None:
                 if len(self.config["wedges_bounds"]) != self.config["wedge"]+1 or self.config["wedges_bounds"][0] != 0 or self.config["wedges_bounds"][-1] != 1:
                     raise Exception("If specifying \'wedges_bounds\', specify them in a list as: [0, a_1, ..., a_{n-1}, 1], where n: number of wedges")
-        
+
         if self.config["with_bias"]: self.__is_bias_conflict()
 
         if self.config["with_AP"]:
             if self.cosmo["DA"] is None or self.cosmo["H"] is None:
                 raise Exception("You asked to apply the AP effect. Please specify \'DA\' and \'H\'. ")
-            
+
             if self.config["skycut"] == 1:
                 if not isinstance(self.cosmo["DA"], float) and not isinstance(self.cosmo["H"], float):
                     raise Exception("Please provide a single pair of \'DA\' and \'H\'.")
@@ -562,21 +562,21 @@ class Correlator(object):
             if self.cosmo["D1"] is None or self.cosmo["D2"] is None or self.cosmo["f1"] is None or self.cosmo["f2"] is None:
                 raise Exception("You asked nonequal time correlator. Pleas specify: \'D1\', \'D2\', \'f1\', \'f2\'.  ")
 
-    def __is_bias_conflict(self, bias=None): 
-        if bias is not None: self.cosmo["bias"] = bias 
-        if self.cosmo["bias"] is None: raise Exception("Please specify \'bias\'. ") 
-        if isinstance(self.cosmo["bias"], (list, np.ndarray)): self.cosmo["bias"] = self.cosmo["bias"][0] 
-        if not isinstance(self.cosmo["bias"], dict): raise Exception("Please specify bias in a dict. ") 
-        
+    def __is_bias_conflict(self, bias=None):
+        if bias is not None: self.cosmo["bias"] = bias
+        if self.cosmo["bias"] is None: raise Exception("Please specify \'bias\'. ")
+        if isinstance(self.cosmo["bias"], (list, np.ndarray)): self.cosmo["bias"] = self.cosmo["bias"][0]
+        if not isinstance(self.cosmo["bias"], dict): raise Exception("Please specify bias in a dict. ")
+
         for p in self.eft_parameters_list:
-            if p not in self.cosmo["bias"]: 
+            if p not in self.cosmo["bias"]:
                 raise Exception ("%s not found, please provide (given command \'eft_basis\': \'%s\') %s" % (p, self.config["eft_basis"], self.eft_parameters_list))
 
         # PZ: here I should auto-fill the EFT parameters for all output options!!!
-        
+
         self.bias = self.cosmo["bias"]
 
-        if "b" in self.config["output"]: 
+        if "b" in self.config["output"]:
             if "westcoast" in self.config["eft_basis"]:
                 self.bias["b2"] = 2.**-.5 * (self.bias["c2"] + self.bias["c4"])
                 self.bias["b4"] = 2.**-.5 * (self.bias["c2"] - self.bias["c4"])
@@ -590,18 +590,18 @@ class Correlator(object):
 
     def __set_eft_parameters_list(self):
 
-        if self.config["eft_basis"] in ["eftoflss", "westcoast"]: 
+        if self.config["eft_basis"] in ["eftoflss", "westcoast"]:
             self.gauss_eft_parameters_list = ['cct']
             if self.config["multipole"] >= 2: self.gauss_eft_parameters_list.extend(['cr1', 'cr2'])
-        elif self.config["eft_basis"] == "eastcoast": 
+        elif self.config["eft_basis"] == "eastcoast":
             self.gauss_eft_parameters_list = ['c0']
             if self.config["multipole"] >= 2: self.gauss_eft_parameters_list.extend(['c2', 'c4'])
         if self.config["with_stoch"]: self.gauss_eft_parameters_list.extend(['ce0', 'ce1', 'ce2'])
-        if self.config["with_nnlo_counterterm"]: 
+        if self.config["with_nnlo_counterterm"]:
             if self.config["eft_basis"] in ["eftoflss", "westcoast"]: self.gauss_eft_parameters_list.extend(['cr4', 'cr6'])
             elif self.config["eft_basis"] == "eastcoast": self.gauss_eft_parameters_list.append('ct')
         self.eft_parameters_list = deepcopy(self.gauss_eft_parameters_list)
-        if "b" in self.config["output"]: 
+        if "b" in self.config["output"]:
             if self.config["eft_basis"] in ["eftoflss", "westcoast"]: self.gauss_eft_parameters_list.append('b3')
             elif self.config["eft_basis"] == "eastcoast": self.gauss_eft_parameters_list.append('bGamma3')
             if self.config["eft_basis"] == "eftoflss": self.eft_parameters_list.extend(['b1', 'b2', 'b3', 'b4'])
@@ -616,14 +616,14 @@ class Correlator(object):
                 for config_key in config_dict:
                     if config_key == name:
                         config.check(config_key, config_dict[config_key])
-            
-        # Setting unspecified configs to default value 
+
+        # Setting unspecified configs to default value
         for (name, config) in zip(self.config_catalog, self.config_catalog.values()):
             if config.value is None: config.value = config.default
 
         # Translating the catalog to a dict
         self.config = translate_catalog_to_dict(self.config_catalog)
-        
+
         self.config["accboost"] = float(self.config["accboost"])
 
     def __is_config_conflict(self):
@@ -636,10 +636,10 @@ class Correlator(object):
 
         # if self.config["with_cf"]: self.config["with_stoch"] = False
         # if self.config["wedge"] is not 0: self.config["multipole"] = 3 # enforced
-        
+
         if "bm" in self.config["output"]: self.config["halohalo"] = False
         else: self.config["halohalo"] = True
-        
+
         if self.config["skycut"] > 1:
             self.config["with_bias"] = False
             if len(self.config["z"]) != self.config["skycut"]:
@@ -647,10 +647,10 @@ class Correlator(object):
                 self.config["z"] = np.asarray(self.config["z"])
             def checkEqual(lst): return lst[1:] == lst[:-1] ### TO CHANGE
             if checkEqual(self.config["z"]): # if same redshift
-                self.config["with_time"] = True 
+                self.config["with_time"] = True
                 #self.config["z"] = self.config["z"][0]
             else: self.config["with_time"] = False
-        
+
         if self.config["xdata"] is None:
             raise Exception("Please specify a data point array \'xdata\'.")
         if len(self.config["xdata"]) == 1 and isinstance(self.config["xdata"][0], (list, np.ndarray)):
@@ -660,21 +660,21 @@ class Correlator(object):
 
         #     def is_conflict_xdata(xdata):
         #         if "Cf" in self.config["output"]:
-        #             if xdata[0] < self.config["smin"] or xdata[-1] > self.config["smax"]: 
+        #             if xdata[0] < self.config["smin"] or xdata[-1] > self.config["smax"]:
         #                 raise Exception("Please specify a data point array \'xdata\' in: (%s, %s)." % (self.config["smin"], self.config["smax"]))
         #         else:
-        #             if xdata[0] < self.config["kmin"] or xdata[-1] > self.config["kmax"]: 
+        #             if xdata[0] < self.config["kmin"] or xdata[-1] > self.config["kmax"]:
         #                 raise Exception("Please specify a data point array \'xdata\' in: (%s, %s) or increase the kmax." % (self.config["kmin"], self.config["kmax"]))
-            
-        #     if self.config["skycut"] == 1: 
+
+        #     if self.config["skycut"] == 1:
         #         is_conflict_xdata(self.config["xdata"])
         #     elif self.config["skycut"] > 1:
         #         if len(self.config["xdata"]) == 1: is_conflict_xdata(self.config["xdata"])
-        #         if len(self.config["xdata"]) is self.config["skycut"]: 
+        #         if len(self.config["xdata"]) is self.config["skycut"]:
         #             for xi in self.config["xdata"]: is_conflict_xdata(xi)
         #         else:
         #             raise Exception("Please provide a commmon data point array \'xdata\' or as many arrays (in a list) as the corresponding skycuts.")
-        
+
         self.config["with_common_nonequal_time"] = False # this is to pass for the common Class to setup the numbers of loops (22 and 13 gathered by default)
 
         if self.config["with_nonequal_time"]:
@@ -696,17 +696,17 @@ class Correlator(object):
             if self.config["z_AP"] is None: self.config["z_AP"] = self.config["z"]
             if self.config["skycut"] == 1:
                 if isinstance(self.config["z_AP"], list): self.config["z_AP"] = self.config["z_AP"][0]
-                
+
         if self.config["with_window"]:
-            
+
             def is_conflict_window(windowCf):
-                try: 
+                try:
                     test = np.loadtxt(windowCf)
                     if self.config["with_cf"]: self.windowPk = None
                 except IOError:
                     print("You asked to apply a mask. Please specify a correct path to the configuration space window file.")
                     raise
-            
+
             if self.config["skycut"] == 1:
                 if isinstance(self.config["windowCf"], list): self.config["windowCf"] = self.config["windowCf"][0]
                 if isinstance(self.config["windowPk"], list): self.config["windowPk"] = self.config["windowPk"][0]
@@ -736,21 +736,21 @@ class Correlator(object):
                 self.config["zz"] = np.asarray(self.config["zz"])
                 self.config["nz"] = np.asarray(self.config["nz"])
                 # print (len(self.config["zz"]), len(self.config["nz"]))
-                if len(self.config["zz"]) == self.config["skycut"] and len(self.config["nz"]) == self.config["skycut"]: 
+                if len(self.config["zz"]) == self.config["skycut"] and len(self.config["nz"]) == self.config["skycut"]:
                     for zz, nz in zip(self.config["zz"], self.config["nz"]): is_conflict_zz(zz, nz)
                 else:
                     raise Exception("Please provide as many \'nz\' with corresponding \'zz\' (in a list) as the corresponding skycuts. ")
         else:
             self.config["zz"] = None
-            self.config["nz"] = None 
+            self.config["nz"] = None
 
         # if self.config["with_quintessence"]: self.config["with_exact_time"] = True
 
 
     def setcosmo(self, cosmo_dict, module='class'):
-        
+
         if module is 'class':
-            
+
             from classy import Class
 
             # Not sure this is useful: does class read z_max_pk?
@@ -758,7 +758,7 @@ class Correlator(object):
                 if self.config["with_redshift_bin"]: zmax = max(self.config["zz"])
                 else: zmax = self.config["z"]
             elif self.config["skycut"] > 1:
-                if self.config["with_redshift_bin"]: 
+                if self.config["with_redshift_bin"]:
                     maxbin = np.argmax(self.config["z"])
                     zmax = max(self.config["zz"][maxbin])
                 else: zmax = max(self.config["z"])
@@ -773,7 +773,7 @@ class Correlator(object):
 
             cosmo = {}
 
-            if self.config["with_bias"]: 
+            if self.config["with_bias"]:
                 try: cosmo["bias"] = cosmo_dict["bias"]
                 except:
                     print ("Please specify \'bias\'.")
@@ -782,7 +782,7 @@ class Correlator(object):
             if self.config["skycut"] == 1: zfid = self.config["z"]
             elif self.config["skycut"] > 1: zfid = self.config["z"][self.config["skycut"]//2]
 
-            log10kmax_classy = 0 
+            log10kmax_classy = 0
             if self.config["with_nnlo_counterterm"]: log10kmax_classy = 1 # slower, but useful for the wiggle-no-wiggle split
             cosmo["k11"] = np.logspace(-5, log10kmax_classy, 200)  # k in h/Mpc
             cosmo["P11"] = np.array([M.pk(k*M.h(), zfid)*M.h()**3 for k in cosmo["k11"]]) # P(k) in (Mpc/h)**3
@@ -790,12 +790,12 @@ class Correlator(object):
             if self.config["skycut"] == 1:
                 if self.config["multipole"] is not 0: cosmo["f"] = M.scale_independent_growth_factor_f(self.config["z"])
                 if self.config["with_nonequal_time"]:
-                    cosmo["D"] = M.scale_independent_growth_factor(self.config["z"]) 
-                    cosmo["D1"] = M.scale_independent_growth_factor(self.config["z1"]) 
-                    cosmo["D2"] = M.scale_independent_growth_factor(self.config["z2"]) 
-                    cosmo["f1"] = M.scale_independent_growth_factor_f(self.config["z1"]) 
-                    cosmo["f2"] = M.scale_independent_growth_factor_f(self.config["z2"]) 
-                if self.config["with_exact_time"] or self.config["with_quintessence"]: 
+                    cosmo["D"] = M.scale_independent_growth_factor(self.config["z"])
+                    cosmo["D1"] = M.scale_independent_growth_factor(self.config["z1"])
+                    cosmo["D2"] = M.scale_independent_growth_factor(self.config["z2"])
+                    cosmo["f1"] = M.scale_independent_growth_factor_f(self.config["z1"])
+                    cosmo["f2"] = M.scale_independent_growth_factor_f(self.config["z2"])
+                if self.config["with_exact_time"] or self.config["with_quintessence"]:
                     cosmo["z"] = self.config["z"]
                     cosmo["Omega0_m"] = M.Omega0_m()
                     try: cosmo["w0_fld"] = cosmo_dict["w0_fld"]
@@ -824,8 +824,8 @@ class Correlator(object):
                     cosmo["fz"] = np.array([ [M.scale_independent_growth_factor_f(z) for z in zz] for zz in self.config["zz"] ])
                     cosmo["rz"] = np.array([ [comoving_distance(z) for z in zz] for zz in self.config["zz"] ])
 
-            if self.config["with_quintessence"]: 
-                # starting deep inside matter domination and evolving to the total adiabatic linear power spectrum. 
+            if self.config["with_quintessence"]:
+                # starting deep inside matter domination and evolving to the total adiabatic linear power spectrum.
                 # This does not work in the general case, e.g. with massive neutrinos (okish for minimal mass though)
                 # This does not work for multi skycuts nor 'with_redshift_bin': True. # eventually to code up
                 zm = 5. # z in matter domination
@@ -860,13 +860,13 @@ class Correlator(object):
                 kmask = np.where(kk < 1.02)[0]
                 return kk[kmask], spk[kmask], pk[kmask] #spk[kmask]+wpk_resc[kmask]
 
-            if self.config["with_nnlo_counterterm"]: 
+            if self.config["with_nnlo_counterterm"]:
                 cosmo["k11"], cosmo["Psmooth"], cosmo["P11"] = get_smooth_wiggle_resc(cosmo["k11"], cosmo["P11"])
 
             return cosmo
 
 
-class BiasCorrelator(Correlator): 
+class BiasCorrelator(Correlator):
     '''
     Class to load pre-computed correlator
     '''
@@ -902,9 +902,9 @@ class Option(object):
             if self.list is None: is_config = True
             elif isinstance(config_value, str):
                 if any(config_value in o for o in self.list): is_config = True
-            elif isinstance(config_value, (int, float, bool)): 
+            elif isinstance(config_value, (int, float, bool)):
                 if any(config_value == o for o in self.list): is_config = True
-        if is_config: 
+        if is_config:
             self.value = config_value
         else: self.error()
         return is_config
@@ -916,4 +916,3 @@ class Option(object):
         else:
             try: raise Exception("Input error in \'%s\'; input configs: %s. Check Correlator.info() in any doubt." % (self.name, self.list))
             except Exception as e: print(e)
-

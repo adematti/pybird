@@ -3,14 +3,14 @@ import numpy as np
 from numpy import pi, cos, sin, log, exp, sqrt, trapz
 from scipy.interpolate import interp1d
 from scipy.special import gamma
-from fftlog import FFTLog, MPC, CoefWindow
-from common import co
+from .fftlog import FFTLog, MPC, CoefWindow
+from .common import co
 
 class NonLinear(object):
     """
-    given a Bird() object, computes the one-loop power spectrum and one-loop correlation function. 
+    given a Bird() object, computes the one-loop power spectrum and one-loop correlation function.
     The correlation function is useful to perform the IR-resummation of the power spectrum.
-    The loop and spherical Bessel transform matrices are either loaded either precomputed and stored at the instanciation of the class. 
+    The loop and spherical Bessel transform matrices are either loaded either precomputed and stored at the instanciation of the class.
 
     Attributes
     ----------
@@ -21,7 +21,7 @@ class NonLinear(object):
         An object of type FFTLog() to perform the FFTLog
     M22 : ndarray
         22-loop power spectrum matrices
-    M13 : ndarray 
+    M13 : ndarray
         13-loop power spectrum matrices
     Mcf11 : ndarray
         Spherical Bessel transform matrices of the linear power spectrum to correlation function
@@ -40,7 +40,7 @@ class NonLinear(object):
     optipathC13l : NumPy einsum_path
         Optimization settings for NumPy einsum when performing matrix multiplications to compute the 13-loop correlation function. For speedup purpose in repetitive evaluations.
     optipathC22l : NumPy einsum_path
-        Optimization settings for NumPy einsum when performing matrix multiplications to compute the 22-loop correlation function. For speedup purpose in repetitive evaluations. 
+        Optimization settings for NumPy einsum when performing matrix multiplications to compute the 22-loop correlation function. For speedup purpose in repetitive evaluations.
     """
 
     def __init__(self, load=True, save=True, path='./', NFFT=256, fftbias=-1.6, co=co):
@@ -53,7 +53,7 @@ class NonLinear(object):
         self.fft = FFTLog(**self.fftsettings)
 
         if self.co.halohalo:
-            if self.co.with_cf: 
+            if self.co.with_cf:
                 self.pyegg = os.path.join(path, 'pyegg%s_cf_nl%s.npz') % (NFFT, self.co.Nl)
                 if self.co.exact_time: self.pyegg = os.path.join(path, 'pyegg%s_cf_nl%s_exact_time.npz') % (NFFT, self.co.Nl)
                 if self.co.with_tidal_alignments: self.pyegg = os.path.join(path, 'pyegg%s_cf_nl%s_tidal_alignments.npz') % (NFFT, self.co.Nl)
@@ -61,7 +61,7 @@ class NonLinear(object):
                 if self.co.exact_time: self.pyegg = os.path.join(path, 'pyegg%s_nl%s_exact_time.npz') % (NFFT, self.co.Nl)
                 elif self.co.with_tidal_alignments: self.pyegg = os.path.join(path, 'pyegg%s_nl%s_tidal_alignments.npz') % (NFFT, self.co.Nl)
                 else: self.pyegg = os.path.join(path, 'pyegg%s_nl%s.npz') % (NFFT, self.co.Nl)
-                # else: 
+                # else:
                 #     self.fftsettings = dict(Nmax=NFFT, xmin=1.5e-5, xmax=1000., bias=fftbias)
                 #     self.fft = FFTLog(**self.fftsettings)
                 #     self.pyegg = os.path.join(path, 'pyegg%s_fftbias_%s_nl%s.npz') % (NFFT, fftbias, self.co.Nl)
@@ -254,7 +254,7 @@ class NonLinear(object):
         coefkPow = self.CoefkPow(coef)
         self.makeP22(coefkPow, bird)
         self.makeP13(coefkPow, bird)
-        
+
         coefsPow = self.CoefsPow(coef)
         self.makeC11(coefsPow, bird)
         self.makeCct(coefsPow, bird)
@@ -492,5 +492,3 @@ M22gm = {
     20: lambda n1, n2: ((-3 + 2*n1 + 2*n2)*(-1 + 2*n1 + 2*n2)*(1 + 2*n1 + 2*n2)*(1 + 2*(n1**2 - 4*n1*n2 + n2**2)))/(16.*n1*(1 + n1)*(-1 + 2*n1)*n2*(1 + n2)*(-1 + 2*n2)),
     21: lambda n1, n2: ((-3 + 2*n1 + 2*n2)*(-1 + 2*n1 + 2*n2)*(1 + 2*n1 + 2*n2)*(3 + 2*n1 + 2*n2))/(32.*n1*(1 + n1)*n2*(1 + n2)),
 }
-
-

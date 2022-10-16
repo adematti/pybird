@@ -19,7 +19,7 @@ sbird = np.array([1.000e+00, 1.124e+00, 1.264e+00, 1.421e+00, 1.597e+00, 1.796e+
 class Common(object):
     """
     A class to share data among different objects
-    
+
     Attributes
     ----------
     Nl : int
@@ -27,9 +27,9 @@ class Common(object):
     """
 
     def __init__(self, Nl=2, kmin=0.001, kmax=0.25, km=1., kr=1., nd=3e-4, eft_basis='eftoflss',
-        halohalo=True, with_cf=False, with_time=True, accboost=1., optiresum=False, orderresum=16, 
+        halohalo=True, with_cf=False, with_time=True, accboost=1., optiresum=False, orderresum=16,
         exact_time=False, quintessence=False, with_tidal_alignments=False, nonequaltime=False, keep_loop_pieces_independent=False):
-        
+
         self.eft_basis = eft_basis
         self.halohalo = halohalo
         self.nd = nd
@@ -45,13 +45,13 @@ class Common(object):
         self.nonequaltime = nonequaltime
         self.keep_loop_pieces_independent = keep_loop_pieces_independent
 
-        if Nl is 0: self.Nl = 1
+        if Nl == 0: self.Nl = 1
         elif Nl > 0: self.Nl = Nl
-        
+
         self.Nst = 3  # number of stochastic terms
 
         if self.halohalo:
-            
+
             self.N11 = 3  # number of linear termss
             if self.eft_basis in ["eftoflss", "westcoast"]: self.Nct, self.Nnnlo = 6, 2  # number of counterterms k^2 P11, number of NNLO counterterms k^4 P11
             elif self.eft_basis == "eastcoast": self.Nct, self.Nnnlo = 3, 3
@@ -64,18 +64,18 @@ class Common(object):
             else:
                 self.N22 = 28  # number of 22-loops
                 self.N13 = 10  # number of 13-loops
-            
 
-            if self.keep_loop_pieces_independent: 
+
+            if self.keep_loop_pieces_independent:
                 self.Nloop = self.N13+self.N22
             elif self.with_time: # giving f (and other time functions e.g. Y if != EdS)
-                if self.with_tidal_alignments: self.Nloop = 18          
+                if self.with_tidal_alignments: self.Nloop = 18
                 else: self.Nloop = 12
-            else: 
+            else:
                 if self.exact_time: self.Nloop = 35 # giving nothing, however, more terms than in EdS
                 elif self.nonequaltime: self.Nloop = self.N13+self.N22
                 else: self.Nloop = 22                                    # giving nothing (this is EdS)
-                
+
 
         else: # halo-matter
             self.N11 = 4  # number of linear terms
@@ -98,7 +98,7 @@ class Common(object):
             if self.optiresum is True: self.s = np.arange(40., 200., 1./accboost)
             else: self.s = sbird
         self.Ns = self.s.shape[0]
-        
+
         if kmax is not None:
             self.kmin = kmin # no support for kmin: keep default
             self.kmax = kmax
@@ -114,12 +114,12 @@ class Common(object):
 
         # for resummation
         if self.with_cf: self.NIR = 20
-        elif self.Nl is 3 or self.kmax > 0.25: self.NIR = 16
+        elif self.Nl == 3 or self.kmax > 0.25: self.NIR = 16
         else: self.NIR = 8
-        
-        if self.NIR is 16: self.Na = 3
-        elif self.NIR is 20: self.Na = 3
-        elif self.NIR is 8: self.Na = 2
+
+        if self.NIR == 16: self.Na = 3
+        elif self.NIR == 20: self.Na = 3
+        elif self.NIR == 8: self.Na = 2
 
         self.Nn = self.NIR * self.Na * 2
 
@@ -128,27 +128,27 @@ class Common(object):
         self.l22 = np.empty(shape=(self.Nl, self.N22))
         self.l13 = np.empty(shape=(self.Nl, self.N13))
         self.lnnlo = np.empty(shape=(self.Nl, self.Nnnlo))
-        
+
         for i in range(self.Nl):
             l = 2 * i
             if self.halohalo:
                 self.l11[i] = np.array([mu[0][l], mu[2][l], mu[4][l]])
-                if self.eft_basis in ["eftoflss", "westcoast"]: 
+                if self.eft_basis in ["eftoflss", "westcoast"]:
                     self.lct[i] = np.array([mu[0][l], mu[2][l], mu[4][l], mu[2][l], mu[4][l], mu[6][l]])
                     self.lnnlo[i] = np.array([mu[4][l], mu[6][l]])
-                elif self.eft_basis == "eastcoast": 
+                elif self.eft_basis == "eastcoast":
                     self.lct[i] = np.array([mu[0][l], mu[2][l], mu[4][l]])
                     self.lnnlo[i] = np.array([mu[4][l], mu[6][l], mu[8][l]])
                 if self.exact_time:
-                    self.l22[i] = np.array([ 6 * [mu[0][l]] + 7 * [mu[2][l]] + [mu[4][l], mu[2][l], mu[4][l], mu[2][l], mu[4][l], mu[2][l]] 
-                        + 3 * [mu[4][l]] + [mu[6][l], mu[4][l], mu[6][l], mu[4][l], mu[6][l], mu[8][l]] 
+                    self.l22[i] = np.array([ 6 * [mu[0][l]] + 7 * [mu[2][l]] + [mu[4][l], mu[2][l], mu[4][l], mu[2][l], mu[4][l], mu[2][l]]
+                        + 3 * [mu[4][l]] + [mu[6][l], mu[4][l], mu[6][l], mu[4][l], mu[6][l], mu[8][l]]
                         + 3 * [mu[2][l]] + 3 * [mu[4][l]] + [mu[6][l], mu[4][l]] ])
                     self.l13[i] = np.array([ 2 * [mu[0][l]] + 2 * [mu[2][l]] + [mu[4][l], mu[0][l], mu[2][l], mu[4][l], mu[2][l], mu[2][l], mu[4][l], mu[4][l], mu[6][l], mu[2][l], mu[4][l]] ])
                 elif self.with_tidal_alignments:
                     self.l22[i] = np.array([ mu[2][l], mu[2][l], mu[2][l], mu[2][l], mu[4][l], mu[0][l], mu[0][l], mu[0][l], mu[0][l], mu[0][l], mu[0][l], mu[0][l], mu[0][l], mu[0][l], mu[0][l], mu[2][l], mu[2][l], mu[2][l], mu[2][l], mu[4][l], mu[2][l], mu[2][l], mu[2][l], mu[2][l], mu[4][l], mu[2][l], mu[4][l], mu[2][l], mu[4][l], mu[2][l], mu[4][l], mu[2][l], mu[4][l], mu[2][l], mu[4][l], mu[6][l], mu[4][l], mu[4][l], mu[6][l], mu[4][l], mu[6][l], mu[4][l], mu[6][l], mu[8][l] ])
                     self.l13[i] = np.array([ mu[2][l], mu[2][l], mu[2][l], mu[4][l], mu[0][l], mu[0][l], mu[0][l], mu[0][l], mu[0][l], mu[2][l], mu[2][l], mu[4][l], mu[2][l], mu[2][l], mu[2][l], mu[4][l], mu[2][l], mu[4][l], mu[2][l], mu[4][l], mu[6][l], mu[4][l], mu[4][l], mu[6][l] ])
                 else:
-                    self.l22[i] = np.array([ 6 * [mu[0][l]] + 7 * [mu[2][l]] + [mu[4][l], mu[2][l], mu[4][l], mu[2][l], mu[4][l], mu[2][l]] 
+                    self.l22[i] = np.array([ 6 * [mu[0][l]] + 7 * [mu[2][l]] + [mu[4][l], mu[2][l], mu[4][l], mu[2][l], mu[4][l], mu[2][l]]
                         + 3 * [mu[4][l]] + [mu[6][l], mu[4][l], mu[6][l], mu[4][l], mu[6][l], mu[8][l]] ])
                     self.l13[i] = np.array([2 * [mu[0][l]] + 4 * [mu[2][l]] + 3 * [mu[4][l]] + [mu[6][l]]])
             else: # halo-matter

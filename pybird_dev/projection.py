@@ -4,11 +4,11 @@ from numpy import pi, cos, sin, log, exp, sqrt, trapz
 from scipy.interpolate import interp1d
 from scipy.integrate import quad
 from scipy.special import legendre, spherical_jn, j1
-from copy import deepcopy 
-from fftlog import FFTLog, MPC
-from common import co
-from greenfunction import GreenFunction
-from fourier import FourierTransform
+from copy import deepcopy
+from .fftlog import FFTLog, MPC
+from .common import co
+from .greenfunction import GreenFunction
+from .fourier import FourierTransform
 
 # import importlib, sys
 # importlib.reload(sys.modules['greenfunction'])
@@ -86,9 +86,9 @@ class Projection(object):
     - Fiber collision corrections
     - Wedges
     """
-    def __init__(self, xout, Om_AP=None, z_AP=None, nbinsmu=100, 
-        window_fourier_name=None, path_to_window=None, window_configspace_file=None, 
-        binning=False, fibcol=False, Nwedges=0, wedges_bounds=None, 
+    def __init__(self, xout, Om_AP=None, z_AP=None, nbinsmu=100,
+        window_fourier_name=None, path_to_window=None, window_configspace_file=None,
+        binning=False, fibcol=False, Nwedges=0, wedges_bounds=None,
         zz=None, nz=None, co=co):
 
         self.co = co
@@ -108,7 +108,7 @@ class Projection(object):
             self.arrayLegendremukgrid = np.array([(2*2*l+1)/2.*legendre(2*l)(self.mukgrid) for l in range(self.co.Nl)])
 
         self.with_window = False
-        if window_configspace_file is not None: 
+        if window_configspace_file is not None:
             if window_fourier_name is not None:
                 self.path_to_window = path_to_window
                 self.window_fourier_name = window_fourier_name
@@ -116,23 +116,23 @@ class Projection(object):
             self.setWindow(Nl=self.co.Nl)
             self.with_window = True
 
-        if binning: 
+        if binning:
             self.loadBinning(self.xout)
 
         # wedges
         if Nwedges != 0:
             self.Nw = Nwedges
-            if Nwedges != 3 or wedges_bounds is not None: 
+            if Nwedges != 3 or wedges_bounds is not None:
                 self.IL = self.IntegralLegendreArray(Nw=self.Nw, Nl=self.co.Nl, bounds=wedges_bounds)
             else:
-                assert Nwedges == 3, "The formula has been implemented only for 3 pseudo-wedges" 
+                assert Nwedges == 3, "The formula has been implemented only for 3 pseudo-wedges"
                 # Matrix that gives the pseudo-wedges from the multipoles
-                # Transformation matrix from 3 multipoles to 3 wedges 
+                # Transformation matrix from 3 multipoles to 3 wedges
                 # self.IL = np.array([[1., 0., 0.], [0., 1., 0.], [0., 0., 1.]])
                 self.IL = np.array([[1., -3./7., 11./56.], [1., -3/8., 15/128.], [1., 3/8., -15./128.]]) # PA + w1/2 + w2/2
                 # self.IL = np.array([[1., -3./7., 11./56.], [1., -1./9., -85./324.], [1., 5./9., 5./324.]]) # PA + w2/3 + w3/3
                 #np.array([[1., -4./9., 20./81.], [1., -1./9., -85./324.], [1., 5./9., 5./324.]]) # w1/3 + w2/3 + w3/3
-                
+
 
         # redshift bin evolution
         if zz is not None and nz is not None:
@@ -211,7 +211,7 @@ class Projection(object):
                 bird.Pctl = 1. / (qperp**2 * qpar) * self.integrAP(self.co.k, bird.Pctl, kp, arrayLegendremup, many=True)
                 bird.Ploopl = 1. / (qperp**2 * qpar) * self.integrAP(self.co.k, bird.Ploopl, kp, arrayLegendremup, many=True)
                 if bird.with_nnlo_counterterm: bird.Pnnlol = 1. / (qperp**2 * qpar) * self.integrAP(self.co.k, bird.Pnnlol, kp, arrayLegendremup, many=True)
-            
+
 
     def setWindow(self, load=True, save=True, Nl=3, withmask=True, windowk=0.05):
         """
@@ -237,7 +237,7 @@ class Projection(object):
         # else:
         self.p = np.concatenate([ np.geomspace(1e-5, 0.015, 100, endpoint=False) , np.arange(0.015, self.co.kmax, 1e-3) ])
         window_fourier_file = os.path.join(self.path_to_window, '%s_Nl%s_kmax%.2f.npy') % (self.window_fourier_name, self.co.Nl, self.co.kmax)
-        
+
         if load:
             try:
                 self.Wal = np.load(window_fourier_file)
@@ -253,15 +253,15 @@ class Projection(object):
             if self.window_configspace_file is None:
                 print ('Error: please specify a configuration-space mask file.')
                 compute = False
-            else:    
+            else:
                 try:
                     swindow_config_space = np.loadtxt(self.window_configspace_file)
                 except:
                     print ('Error: can\'t load mask file: %s.'%self.window_configspace_file)
                     compute = False
-        
+
         if compute is True:
-            Calp = np.array([ 
+            Calp = np.array([
                 [ [1., 0., 0.],
                   [0., 1/5., 0.],
                   [0., 0., 1/9.] ],
@@ -282,7 +282,7 @@ class Projection(object):
 
             # else:
             # self.fftsettings = dict(Nmax=4096, xmin=sw[0], xmax=sw[-1]*100., bias=-1.6) # 1e-2 - 1e6 [Mpc/h]
-            self.fftsettings = dict(Nmax=2048, xmin=1.e-2, xmax=1.e6, bias=-1.6) 
+            self.fftsettings = dict(Nmax=2048, xmin=1.e-2, xmax=1.e6, bias=-1.6)
             self.fft = FFTLog(**self.fftsettings)
             self.pPow = exp(np.einsum('n,s->ns', -self.fft.Pow-3., log(self.p)))
             self.M = np.empty(shape=(Nl, self.fft.Pow.shape[0]), dtype='complex')
@@ -296,7 +296,7 @@ class Projection(object):
 
             self.Wal = self.p**2 * np.real( np.einsum('alkn,np,ln->alkp', self.Coef, self.pPow, self.M) )
 
-            if save: 
+            if save:
                 print ( 'Saving mask: %s' % window_fourier_file )
                 np.save(window_fourier_file, self.Wal)
 
@@ -328,7 +328,7 @@ class Projection(object):
 
     def Window(self, bird):
         """
-        Apply the survey window function to the bird power spectrum 
+        Apply the survey window function to the bird power spectrum
         """
         if self.with_window:
             if bird.with_bias:
@@ -339,7 +339,7 @@ class Projection(object):
                 bird.Ploopl = self.integrWindow(bird.Ploopl, many=True)
                 # bird.Pnnlol = self.integrWindow(bird.Pnnlol, many=True)
 
-            
+
 
     def dPuncorr(self, xout, fs=0.6, Dfc=0.43 / 0.6777):
         """
@@ -535,22 +535,22 @@ class Projection(object):
         return ifunc(zm)
 
     def redshift(self, bird, rz, Dz, fz, pk='Pk'):
-        
+
         if 'Pk' in pk: # for the Pk, we use the endpoint LOS. We first do the line-of-sight integral in configuration space, then Fourier transform the integrated Cf to get the integrated Pk
-            D1 = self.mesheval1d(self.zz, self.z1, Dz/bird.D) 
-            f1 = self.mesheval1d(self.zz, self.z1, fz/bird.f) 
-            s1 = self.mesheval1d(self.zz, self.z1, rz) 
+            D1 = self.mesheval1d(self.zz, self.z1, Dz/bird.D)
+            f1 = self.mesheval1d(self.zz, self.z1, fz/bird.f)
+            s1 = self.mesheval1d(self.zz, self.z1, rz)
             s2 = (self.s**2 + s1**2 + 2*self.s*s1*self.mu)**0.5
-            n2 = self.mesheval1d(rz, s2, self.nz)  
-            D2 = self.mesheval1d(rz, s2, Dz/bird.D) 
-            f2 = self.mesheval1d(rz, s2, fz/bird.f) 
-            # in principle, 13-type and 22-type loops have different time dependence, however, using the time dependence D1^2 x D^2 for both 22 and 13 gives a ~1e-4 relative difference ; similarly, we do some approximations in powers of f ; 
+            n2 = self.mesheval1d(rz, s2, self.nz)
+            D2 = self.mesheval1d(rz, s2, Dz/bird.D)
+            f2 = self.mesheval1d(rz, s2, fz/bird.f)
+            # in principle, 13-type and 22-type loops have different time dependence, however, using the time dependence D1^2 x D^2 for both 22 and 13 gives a ~1e-4 relative difference ; similarly, we do some approximations in powers of f ;
             # if self.co.nonequaltime:
             #     Dp2 = D1 * D2
             #     Dp22 = Dp2 * Dp2
-            #     Dp13 = Dp22 # 0.5 * (D1**2 + D2**2) * Dp2 
+            #     Dp13 = Dp22 # 0.5 * (D1**2 + D2**2) * Dp2
             #     fp0 = np.ones_like(f1)  # f1**0
-            #     fp1 = 0.5 * (f1 + f2)   # this one is exact, 
+            #     fp1 = 0.5 * (f1 + f2)   # this one is exact,
             #     fp2 = fp1**2            # but this one is approximate, since f**2 = f1 * f2 or 0.5 * (f1**2+f2**2), instead we use mean f approximation
             #     fp3 = fp1 * fp2         # and similar here
             #     fp4 = f1**2 * f2**2     # however this one is exact
@@ -559,13 +559,13 @@ class Projection(object):
             #     floop = np.concatenate([6*[fp0], 6*[fp1], 9*[fp2], 4*[fp3], 3*[fp4], 2*[fp0],  3*[fp1], 3*[fp2], 2*[fp3]])
             #     tlin = np.einsum('n...,...->n...', f11, Dp2 * self.n1 * n2)
             #     tct = np.einsum('n...,...->n...', fct, Dp2 * self.n1 * n2)
-            #     tloop = np.empty_like(floop) 
+            #     tloop = np.empty_like(floop)
             #     tloop[:self.co.N22] = np.einsum('n...,...->n...', floop[:self.co.N22], Dp22 * self.n1 * n2)
             #     tloop[self.co.N22:] = np.einsum('n...,...->n...', floop[self.co.N22:], Dp13 * self.n1 * n2)
             # else:
             Dp2 = D1 * D2
             Dp4 = Dp2**2
-            fp0 = np.ones_like(f1) 
+            fp0 = np.ones_like(f1)
             fp1 = 0.5 * (f1 + f2)
             fp2 = fp1**2
             fp3 = fp1 * fp2
@@ -576,11 +576,11 @@ class Projection(object):
             tlin = np.einsum('n...,...->n...', f11, Dp2 * self.n1 * n2)
             tct = np.einsum('n...,...->n...', fct, Dp2 * self.n1 * n2)
             tloop = np.einsum('n...,...->n...', floop, Dp4 * self.n1 * n2)
-            
+
             norm = np.trapz(self.nz**2 * rz**2, x=rz) # FKP normalization
             # norm = np.trapz(np.trapz(self.n1 * n2 * s1**2, x=self.mu, axis=-1), x=rz, axis=-1) # for CF with endpoint LOS
-            def integrand(t, c): 
-                cmesh = self.mesheval1d(self.co.s, self.s, c)  
+            def integrand(t, c):
+                cmesh = self.mesheval1d(self.co.s, self.s, c)
                 return np.einsum('p...,l...,ln...,n...,...->pn...', self.Lp, self.L, cmesh, t, s1**2) # p: legendre polynomial order, l: multipole, n: number of linear/loop terms, (s, z1, mu)
             def integration(t, c):
                 return np.trapz(np.trapz(integrand(t, c), x=self.mu, axis=-1), x=rz, axis=-1) / norm
@@ -599,12 +599,12 @@ class Projection(object):
             D2 = self.mesheval1d(rz, s2, Dz/bird.D)
             f1 = self.mesheval1d(rz, s1, fz/bird.f)
             f2 = self.mesheval1d(rz, s2, fz/bird.f)
-            n1 = self.mesheval1d(rz, s1, self.nz)  
-            n2 = self.mesheval1d(rz, s2, self.nz)  
+            n1 = self.mesheval1d(rz, s1, self.nz)
+            n2 = self.mesheval1d(rz, s2, self.nz)
 
             Dp2 = D1 * D2
             Dp4 = Dp2**2
-            fp0 = np.ones_like(f1) 
+            fp0 = np.ones_like(f1)
             fp1 = 0.5 * (f1 + f2)
             fp2 = fp1**2
             fp3 = fp1 * fp2
@@ -615,11 +615,11 @@ class Projection(object):
             tlin = np.einsum('n...,...->n...', f11, Dp2 * n1 * n2)
             tct = np.einsum('n...,...->n...', fct, Dp2 * n1 * n2)
             tloop = np.einsum('n...,...->n...', floop, Dp4 * n1 * n2)
-            
+
             norm = np.trapz(np.trapz(n1 * n2 * r**2, x=self.mu, axis=-1), x=rz, axis=-1)
             #norm = np.trapz(self.nz**2 * rz**2, x=rz)
-            def integrand(t, c): 
-                cmesh = self.mesheval1d(self.co.s, self.s, c)  
+            def integrand(t, c):
+                cmesh = self.mesheval1d(self.co.s, self.s, c)
                 return np.einsum('p...,l...,ln...,n...,...->pn...', self.Lp, self.L, cmesh, t, r**2) # p: legendre polynomial order, l: multipole, n: number of linear/loop terms, (s, z1, mu)
             def integration(t, c):
                 return np.trapz(np.trapz(integrand(t, c), x=self.mu, axis=-1), x=rz, axis=-1) / norm
@@ -627,7 +627,3 @@ class Projection(object):
             bird.C11l = integration(tlin, bird.C11l)
             bird.Cctl = integration(tct, bird.Cctl)
             bird.Cloopl = integration(tloop, bird.Cloopl)
-
-        
-
-            

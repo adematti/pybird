@@ -15,7 +15,7 @@ setup(name='pybird',
       url='https://github.com/pierrexyz/pybird',
       author="Pierre Zhang and Guido D'Amico",
       license='MIT',
-      packages=['pybird'],
+      packages=['pybird', 'pybird_dev'],
       python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, <4',
       install_requires=[
         'numpy',

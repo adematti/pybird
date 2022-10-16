@@ -3,8 +3,8 @@ import numpy as np
 from numpy import pi, cos, sin, log, exp, sqrt, trapz
 from scipy.interpolate import interp1d
 from scipy.special import gamma
-from fftlog import FFTLog, MPC, CoefWindow
-from common import co
+from .fftlog import FFTLog, MPC, CoefWindow
+from .common import co
 
 class NNLO_counterterm(object): # k^4 P11
 
@@ -36,7 +36,7 @@ class NNLO_counterterm(object): # k^4 P11
     def Cf(self, bird, PEH_interp):
         k4PEH = self.kdeep**4/(1.+self.kdeep**4/self.co.km**4) * exp(PEH_interp(log(self.kdeep)))
         coef = self.fft.Coef(self.kdeep, k4PEH)
-        bird.Cnnlo = np.real(np.einsum('ns,ln->ls', self.CoefsPow(coef), self.Mcf)) 
+        bird.Cnnlo = np.real(np.einsum('ns,ln->ls', self.CoefsPow(coef), self.Mcf))
         bird.Cnnlo[:,self.smask_out] = 0.
         bird.Cnnlo[:,self.smask_in] *= self.swin
 
@@ -48,12 +48,12 @@ class NNLO_higher_derivative(object): # k^2 P1Loop
     def __init__(self, xdata, with_cf=False, NFFT=256, co=co):
 
         self.co = co
-        self.fftsettings = dict(Nmax=NFFT, xmin=1.e-3, xmax=1.e3, bias=.01) 
+        self.fftsettings = dict(Nmax=NFFT, xmin=1.e-3, xmax=1.e3, bias=.01)
         self.fft = FFTLog(**self.fftsettings)
         if with_cf:
             self.setM()
             self.setsPow(xdata)
-            self.kdeep = np.geomspace(self.co.k[0], 1.e3, 400) 
+            self.kdeep = np.geomspace(self.co.k[0], 1.e3, 400)
             self.kmask = np.where(self.co.k < 0.25)[0]  # < 0.25 is the best choice to FT[1loop]: less, we are cutting physical signal ; more, we are starting to add unphysical junks from the loop divergence : one will see appearing spurious ringing if using higher k's
             self.smask_out = np.where(xdata>75.)[0]
             self.smask_in = np.where(xdata<=75.)[0]
@@ -63,7 +63,7 @@ class NNLO_higher_derivative(object): # k^2 P1Loop
 
     def setsPow(self, s):
         """ Multiply the coefficients with the s's to the powers of the FFTLog. """
-        self.sPow = exp(np.einsum('n,s->ns', -self.fft.Pow - 3., log(s))) 
+        self.sPow = exp(np.einsum('n,s->ns', -self.fft.Pow - 3., log(s)))
 
     def setM(self):
         """ Compute the matrices of the spherical-Bessel transform from Ps to Cf. Called at instantiation. """
