@@ -245,9 +245,7 @@ class Bird(object):
             ct4 = bias["c4"]
 
         if self.with_stoch:
-            self.bst[0] = bias["ce0"]
-            self.bst[1] = bias["ce1"]
-            self.bst[2] = bias["ce2"]
+            self.bst = np.array([bias["ce0"], bias["ce1"], bias["ce2"]])
 
         if self.co.halohalo:
 
