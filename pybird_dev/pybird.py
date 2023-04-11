@@ -612,10 +612,15 @@ class Correlator(object):
     def __read_config(self, config_dict):
 
         # Checking if the inputs are consistent with the options
-        for (name, config) in zip(self.config_catalog, self.config_catalog.values()):
-                for config_key in config_dict:
-                    if config_key == name:
-                        config.check(config_key, config_dict[config_key])
+        for config_key in config_dict:
+            is_config = False
+            for (name, config) in zip(self.config_catalog, self.config_catalog.values()):
+                if config_key == name:
+                    config.check(config_key, config_dict[config_key])
+                    is_config = True
+            ### v1.2: we'll activate this later
+            # if not is_config:
+            #     raise Exception("%s is not an available configuration option. Please check correlator.info() for help. " % config_key)
 
         # Setting unspecified configs to default value
         for (name, config) in zip(self.config_catalog, self.config_catalog.values()):
@@ -864,7 +869,6 @@ class Correlator(object):
                 cosmo["k11"], cosmo["Psmooth"], cosmo["P11"] = get_smooth_wiggle_resc(cosmo["k11"], cosmo["P11"])
 
             return cosmo
-
 
 class BiasCorrelator(Correlator):
     '''
